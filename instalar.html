@@ -2,296 +2,50 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Instalar — Painel Operação SRJ3</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Instalar — Painel SRJ3</title>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --ml-yellow:      #f2b705;
-    --ml-yellow-dark: #d4a004;
-    --bg-dark:        #1a1a2e;
-    --bg-card:        #16213e;
-    --bg-card2:       #0f3460;
-    --text-primary:   #ffffff;
-    --text-secondary: #b0b8d1;
-    --text-muted:     #6c7a99;
-    --border:         #2a3a5c;
-    --radius:         12px;
-    --radius-sm:      8px;
-    --ml-green:       #00a650;
-    --ml-red:         #f23d4f;
-  }
-
-  body {
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    background: var(--bg-dark);
-    color: var(--text-primary);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-  }
-
-  .container {
-    max-width: 680px;
-    width: 100%;
-  }
-
-  /* HEADER */
-  .logo-wrap {
-    text-align: center;
-    margin-bottom: 40px;
-  }
-
-  .logo-badge {
-    display: inline-block;
-    background: var(--ml-yellow);
-    color: #1a1a2e;
-    font-size: 11px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    padding: 4px 14px;
-    border-radius: 20px;
-    margin-bottom: 16px;
-    text-transform: uppercase;
-  }
-
-  .logo-title {
-    font-size: 36px;
-    font-weight: 800;
-    color: var(--text-primary);
-    line-height: 1.1;
-    margin-bottom: 8px;
-  }
-
-  .logo-title span {
-    color: var(--ml-yellow);
-  }
-
-  .logo-sub {
-    font-size: 15px;
-    color: var(--text-secondary);
-  }
-
-  /* CARD PRINCIPAL */
-  .card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 32px;
-    margin-bottom: 20px;
-  }
-
-  .card-title {
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* BOOKMARKLET DRAG AREA */
-  .drag-area {
-    background: var(--bg-card2);
-    border: 2px dashed var(--ml-yellow);
-    border-radius: var(--radius);
-    padding: 28px;
-    text-align: center;
-    margin-bottom: 24px;
-    position: relative;
-  }
-
-  .drag-label {
-    font-size: 12px;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 16px;
-  }
-
-  .bookmarklet-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: linear-gradient(135deg, var(--ml-yellow), var(--ml-yellow-dark));
-    color: #1a1a2e;
-    font-size: 15px;
-    font-weight: 800;
-    padding: 14px 28px;
-    border-radius: var(--radius-sm);
-    text-decoration: none;
-    cursor: grab;
-    box-shadow: 0 4px 20px rgba(242,183,5,0.35);
-    transition: transform 0.2s, box-shadow 0.2s;
-    user-select: none;
-  }
-
-  .bookmarklet-btn:hover {
-    transform: scale(1.04);
-    box-shadow: 0 6px 28px rgba(242,183,5,0.5);
-  }
-
-  .bookmarklet-btn:active {
-    cursor: grabbing;
-  }
-
-  .drag-hint {
-    margin-top: 14px;
-    font-size: 13px;
-    color: var(--text-secondary);
-  }
-
-  .drag-hint strong {
-    color: var(--ml-yellow);
-  }
-
-  /* STEPS */
-  .steps {
-    list-style: none;
-    counter-reset: steps;
-  }
-
-  .steps li {
-    counter-increment: steps;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-    padding: 14px 0;
-    border-bottom: 1px solid var(--border);
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.5;
-  }
-
-  .steps li:last-child {
-    border-bottom: none;
-  }
-
-  .steps li::before {
-    content: counter(steps);
-    background: var(--ml-yellow);
-    color: #1a1a2e;
-    font-size: 12px;
-    font-weight: 800;
-    width: 26px;
-    height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-
-  .steps li strong {
-    color: var(--text-primary);
-    display: block;
-    margin-bottom: 2px;
-  }
-
-  /* SITES */
-  .sites-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .site-item {
-    background: var(--bg-card2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 12px 14px;
-    font-size: 13px;
-  }
-
-  .site-item .site-name {
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 2px;
-  }
-
-  .site-item .site-url {
-    color: var(--text-muted);
-    font-size: 11px;
-    word-break: break-all;
-  }
-
-  /* ALERT */
-  .alert {
-    background: rgba(242,183,5,0.08);
-    border: 1px solid rgba(242,183,5,0.3);
-    border-radius: var(--radius-sm);
-    padding: 14px 16px;
-    font-size: 13px;
-    color: var(--text-secondary);
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    margin-top: 16px;
-  }
-
-  .alert-icon { font-size: 18px; flex-shrink: 0; }
-
-  /* FOOTER */
-  .footer {
-    text-align: center;
-    font-size: 12px;
-    color: var(--text-muted);
-    margin-top: 12px;
-  }
-
-  /* TOAST */
-  #toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--bg-card2);
-    color: var(--text-primary);
-    border: 1px solid var(--border);
-    border-left: 4px solid var(--ml-yellow);
-    border-radius: var(--radius-sm);
-    padding: 12px 20px;
-    font-size: 13px;
-    font-weight: 600;
-    z-index: 9999;
-    opacity: 0;
-    transform: translateY(10px);
-    transition: all 0.3s;
-    pointer-events: none;
-  }
-  #toast.show { opacity: 1; transform: translateY(0); }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#1a1a2e;color:#dde4f0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.wrap{max-width:640px;width:100%}
+.badge{display:inline-block;background:#f2b705;color:#1a1a2e;font-size:11px;font-weight:800;letter-spacing:2px;padding:4px 14px;border-radius:20px;margin-bottom:16px;text-transform:uppercase}
+h1{font-size:32px;font-weight:800;margin-bottom:6px}
+h1 span{color:#f2b705}
+.sub{font-size:14px;color:#8a9bbf;margin-bottom:36px}
+.card{background:#16213e;border:1px solid #2a3a5c;border-radius:12px;padding:28px;margin-bottom:16px}
+.card-ttl{font-size:14px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.drag-area{background:#0f3460;border:2px dashed #f2b705;border-radius:10px;padding:24px;text-align:center;margin-bottom:20px}
+.drag-hint{font-size:12px;color:#8a9bbf;margin-bottom:16px;letter-spacing:1px;text-transform:uppercase}
+.bm-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#f2b705,#d4a004);color:#1a1a2e;font-size:15px;font-weight:800;padding:14px 28px;border-radius:9px;text-decoration:none;cursor:grab;box-shadow:0 4px 20px rgba(242,183,5,.4);transition:transform .2s,box-shadow .2s;user-select:none}
+.bm-btn:hover{transform:scale(1.04);box-shadow:0 6px 28px rgba(242,183,5,.6)}
+.bm-btn:active{cursor:grabbing}
+.drag-tip{margin-top:14px;font-size:13px;color:#8a9bbf}
+.drag-tip strong{color:#f2b705}
+.steps{list-style:none;counter-reset:s}
+.steps li{counter-increment:s;display:flex;align-items:flex-start;gap:14px;padding:12px 0;border-bottom:1px solid #2a3a5c;font-size:13px;color:#8a9bbf;line-height:1.5}
+.steps li:last-child{border:none}
+.steps li::before{content:counter(s);background:#f2b705;color:#1a1a2e;font-size:11px;font-weight:800;min-width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.steps li strong{color:#fff;display:block;margin-bottom:2px}
+.info{background:rgba(242,183,5,.08);border:1px solid rgba(242,183,5,.25);border-radius:8px;padding:12px 16px;font-size:12px;color:#8a9bbf;display:flex;gap:10px;margin-top:14px}
+kbd{background:#0f3460;border:1px solid #2a3a5c;border-radius:4px;padding:2px 7px;font-size:12px;color:#f2b705;font-family:monospace}
 </style>
 </head>
 <body>
-
-<div class="container">
-
-  <!-- LOGO -->
-  <div class="logo-wrap">
-    <div class="logo-badge">⚡ Mercado Livre — SRJ3</div>
-    <div class="logo-title">Painel <span>Operação</span></div>
-    <div class="logo-sub">Monitoramento em tempo real — Separação, LMS, Mapa de Calor</div>
+<div class="wrap">
+  <div style="text-align:center;margin-bottom:40px">
+    <div class="badge">⚡ Mercado Livre — SRJ3</div>
+    <h1>Painel <span>Operação</span></h1>
+    <p class="sub">Sorting · LMS · Mapa de Calor · Hora a Hora</p>
   </div>
 
-  <!-- CARD: INSTALAR -->
   <div class="card">
-    <div class="card-title">🔖 Instalar o Painel</div>
-
+    <div class="card-ttl">🔖 Instalar o Bookmarklet</div>
     <div class="drag-area">
-      <div class="drag-label">Arraste o botão abaixo para a barra de favoritos</div>
-
-      <!-- O href é gerado dinamicamente pelo JS abaixo -->
-      <a class="bookmarklet-btn" id="bookmarkletBtn" href="#" title="Arraste para a barra de favoritos">
-        📊 Painel SRJ3
-      </a>
-
-      <div class="drag-hint">
-        👆 <strong>Arraste</strong> para a barra de favoritos do Chrome/Edge<br>
-        ou clique com botão direito → <strong>Adicionar aos favoritos</strong>
+      <div class="drag-hint">Arraste o botão para a barra de favoritos</div>
+      <a class="bm-btn" id="bmBtn" href="#">📊 Painel SRJ3</a>
+      <div class="drag-tip">
+        👆 <strong>Arraste</strong> para a barra de favoritos do Chrome<br>
+        ou clique com o botão direito → <strong>Adicionar aos favoritos</strong>
       </div>
     </div>
 
@@ -299,148 +53,54 @@
       <li>
         <div>
           <strong>Mostre a barra de favoritos</strong>
-          Pressione <code style="background:var(--bg-card2);padding:2px 6px;border-radius:4px">Ctrl + Shift + B</code> para exibir a barra de favoritos no navegador.
+          Pressione <kbd>Ctrl + Shift + B</kbd> para exibir no Chrome.
         </div>
       </li>
       <li>
         <div>
           <strong>Arraste o botão amarelo</strong>
-          Clique e segure o botão "📊 Painel SRJ3" e arraste até a barra de favoritos.
+          Segure e arraste "📊 Painel SRJ3" até a barra de favoritos.
         </div>
       </li>
       <li>
         <div>
-          <strong>Acesse um dos sites do ML</strong>
-          Abra qualquer um dos sites abaixo onde você já está logado.
+          <strong>Acesse qualquer site do ML</strong>
+          Abra <strong style="color:#f2b705">envios.adminml.com</strong> ou <strong style="color:#f2b705">lms.adminml.com</strong> já logado.
         </div>
       </li>
       <li>
         <div>
           <strong>Clique no favorito</strong>
-          O painel vai abrir automaticamente como uma overlay na página!
+          O painel abre como overlay. Clique novamente para fechar.
         </div>
       </li>
     </ul>
 
-    <div class="alert">
-      <span class="alert-icon">💡</span>
-      <span>O painel usa sua sessão já logada para buscar os dados. Nenhum login extra necessário. Funciona melhor em <strong style="color:var(--ml-yellow)">envios.adminml.com</strong> ou <strong style="color:var(--ml-yellow)">lms.adminml.com</strong>.</span>
+    <div class="info">
+      <span>💡</span>
+      <span>Para dados de <strong style="color:#f2b705">LMS</strong> (bancada/rua/ofensores), use o Chrome logado no email do ML. Para dados de <strong style="color:#f2b705">Sorting</strong> (pacotes, mapa de calor), funciona em qualquer aba do adminml.com.</span>
     </div>
   </div>
-
-  <!-- CARD: SITES COMPATÍVEIS -->
-  <div class="card">
-    <div class="card-title">🌐 Sites Compatíveis</div>
-    <div class="sites-grid">
-      <div class="site-item">
-        <div class="site-name">🗺️ Separação / Mapa de Calor</div>
-        <div class="site-url">envios.adminml.com/logistics/sorting/monitoring</div>
-      </div>
-      <div class="site-item">
-        <div class="site-name">📊 LMS — Etiquetagem</div>
-        <div class="site-url">lms.adminml.com/process-monitor?process=labeling</div>
-      </div>
-      <div class="site-item">
-        <div class="site-name">📊 LMS — Conteinização</div>
-        <div class="site-url">lms.adminml.com/process-monitor?process=containerizing</div>
-      </div>
-      <div class="site-item">
-        <div class="site-name">⚡ Efficiency Monitor</div>
-        <div class="site-url">lms.adminml.com/efficiency-monitor</div>
-      </div>
-    </div>
-  </div>
-
 </div>
 
-<!-- TOAST -->
-<div id="toast"></div>
-
 <script>
-(function() {
+(function(){
+  var SCRIPT_URL = 'https://kelvinkennedyfs-bit.github.io/painel-srj3/painel-srj3.js';
 
-  // ── CÓDIGO DO PAINEL MINIFICADO ──────────────────────────
-  // O bookmarklet carrega o index.html como painel flutuante injetado
-  // via fetch + shadow DOM ou abre em nova janela popup
-  // Aqui usamos a abordagem: injeta script externo via jsDelivr/GitHub Pages
+  var code = '(function(){' +
+    'var s=document.createElement("script");' +
+    's.src="' + SCRIPT_URL + '?_="+Date.now();' +
+    'document.head.appendChild(s);' +
+    '})();';
 
-  // URL do seu GitHub Pages (ajuste após o deploy)
-  // URL do seu painel no GitHub Pages
-  var PAINEL_URL = 'https://kelvinkennedyfs-bit.github.io/painel-srj3/index.html';
+  var btn = document.getElementById('bmBtn');
+  btn.href = 'javascript:' + encodeURIComponent(code);
 
-  // Código do bookmarklet — injeta painel como página flutuante no mesmo domínio
-  var code = '(function(){'
-    + 'var ID="__srj3__";'
-    + 'if(document.getElementById(ID)){'
-    + 'var p=document.getElementById(ID);'
-    + 'p.style.display=p.style.display==="none"?"flex":"none";'
-    + 'return;'
-    + '}'
-    + 'var wrap=document.createElement("div");'
-    + 'wrap.id=ID;'
-    + 'wrap.style.cssText="position:fixed;top:0;left:0;width:100%;height:100%;z-index:2147483647;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center";'
-    + 'var panel=document.createElement("div");'
-    + 'panel.style.cssText="position:relative;width:96vw;height:96vh;background:#1a1a2e;border-radius:12px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.8)";'
-    + 'var closeBtn=document.createElement("button");'
-    + 'closeBtn.textContent="X";'
-    + 'closeBtn.style.cssText="position:absolute;top:10px;right:14px;z-index:9999;background:transparent;border:none;color:#fff;font-size:20px;cursor:pointer";'
-    + 'closeBtn.onclick=function(){wrap.style.display="none"};'
-    + 'var loading=document.createElement("div");'
-    + 'loading.id="__srj3_loading__";'
-    + 'loading.style.cssText="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#f2b705;font-family:sans-serif;font-size:16px;font-weight:700";'
-    + 'loading.textContent="Carregando Painel SRJ3...";'
-    + 'var content=document.createElement("div");'
-    + 'content.id="__srj3_content__";'
-    + 'content.style.cssText="width:100%;height:100%;overflow:auto";'
-    + 'fetch("' + PAINEL_URL + '",{cache:"no-cache"})'
-    + '.then(function(r){return r.text();})'
-    + '.then(function(html){'
-    + 'var ld=document.getElementById("__srj3_loading__");'
-    + 'if(ld)ld.remove();'
-    + 'content.innerHTML=html;'
-    + 'var scripts=content.querySelectorAll("script");'
-    + 'scripts.forEach(function(s){'
-    + 'var n=document.createElement("script");'
-    + 'n.textContent=s.textContent;'
-    + 'document.body.appendChild(n);'
-    + 's.remove();'
-    + '});'
-    + '})'
-    + '.catch(function(e){'
-    + 'var ld=document.getElementById("__srj3_loading__");'
-    + 'if(ld)ld.textContent="Erro: "+e.message;'
-    + '});'
-    + 'panel.appendChild(loading);'
-    + 'panel.appendChild(content);'
-    + 'panel.appendChild(closeBtn);'
-    + 'wrap.appendChild(panel);'
-    + 'document.body.appendChild(wrap);'
-    + 'wrap.addEventListener("click",function(e){if(e.target===wrap)wrap.style.display="none"});'
-    + '})();';
-
-  // Gera o href do bookmarklet
-  var bookmarkletCode = 'javascript:' + encodeURIComponent(code);
-  var btn = document.getElementById('bookmarkletBtn');
-  if (btn) btn.href = bookmarkletCode;
-
-  // Toast
-  function showToast(msg) {
-    var t = document.getElementById('toast');
-    t.textContent = msg;
-    t.classList.add('show');
-    setTimeout(function() { t.classList.remove('show'); }, 3000);
-  }
-
-  // Clique no botão (fallback — avisa para arrastar)
-  if (btn) {
-    btn.addEventListener('click', function(e) {
-      e.preventDefault();
-      showToast('👆 Arraste o botão para a barra de favoritos!');
-    });
-  }
-
+  btn.addEventListener('click', function(e){
+    e.preventDefault();
+    alert('👆 Arraste o botão amarelo para a barra de favoritos do Chrome!');
+  });
 })();
 </script>
-
 </body>
 </html>
