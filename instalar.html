@@ -89,11 +89,10 @@ kbd{background:#0f3460;border:1px solid #2a3a5c;border-radius:4px;padding:2px 7p
     .then(function(r){ return r.text(); })
     .then(function(code){
       var minified = code
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .replace(/\/\/[^\n]*/g, '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')  // remove /* bloco */
+        .replace(/^\s*\/\/[^\n]*/gm, '')    // remove // só no início da linha
         .replace(/\n\s*/g, ' ')
         .replace(/\s{2,}/g, ' ')
-        .replace(/`/g, '\\`')
         .trim();
 
       var btn = document.getElementById('bmBtn');
@@ -104,8 +103,7 @@ kbd{background:#0f3460;border:1px solid #2a3a5c;border-radius:4px;padding:2px 7p
         alert('👆 Arraste o botão amarelo para a barra de favoritos!');
       });
 
-      // Confirma que gerou
-      console.log('[SRJ3] Bookmarklet gerado! Tamanho:', btn.href.length, 'chars');
+      console.log('[SRJ3] OK! Tamanho:', btn.href.length, 'chars');
     })
     .catch(function(e){ console.error(e); });
 })();
