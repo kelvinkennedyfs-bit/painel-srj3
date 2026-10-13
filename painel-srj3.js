@@ -147,14 +147,40 @@
     if (S.fetching) return;
     S.fetching = true;
     _dotColor('yellow');
-    fetchGroups().then(function () {
-      if (!S.activeGroup) { _done(); return; }
-      var g = S.activeGroup;
-      return Promise.all([
-        fetchMonitoring(g), fetchHeatmap(g), fetchDelayed(g),
-        fetchLMS('labeling'), fetchLMS('containerization')
-      ]);
-    }).then(_done).catch(_done);
+
+    var onEnvios = location.hostname.includes('envios.adminml.com');
+    var onLMS    = location.hostname.includes('lms.adminml.com');
+
+    var promises = [];
+
+    // Sorting — só funciona no envios.adminml.com
+    if (onEnvios || (!onEnvios && !onLMS)) {
+      promises.push(
+        fetchGroups().then(function () {
+          if (!S.activeGroup) return;
+          var g = S.activeGroup;
+          return Promise.all([
+            fetchMonitoring(g),
+            fetchHeatmap(g),
+            fetchDelayed(g)
+          ]);
+        })
+      );
+    }
+
+    // LMS — só funciona no lms.adminml.com
+    if (onLMS || (!onEnvios && !onLMS)) {
+      promises.push(fetchLMS('labeling'));
+      promises.push(fetchLMS('containerization'));
+    }
+
+    // Se está no envios, tenta LMS também (pode funcionar em alguns casos)
+    if (onEnvios) {
+      promises.push(fetchLMS('labeling').catch(function(){}));
+      promises.push(fetchLMS('containerization').catch(function(){}));
+    }
+
+    Promise.all(promises).then(_done).catch(_done);
   }
 
   function fetchGroup(gid) {
@@ -162,7 +188,11 @@
     S.fetching = true;
     _dotColor('yellow');
     Promise.all([
-      fetchMonitoring(gid), fetchHeatmap(gid), fetchDelayed(gid)
+      fetchMonitoring(gid),
+      fetchHeatmap(gid),
+      fetchDelayed(gid),
+      fetchLMS('labeling').catch(function(){}),
+      fetchLMS('containerization').catch(function(){})
     ]).then(_done).catch(_done);
   }
 
