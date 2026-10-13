@@ -136,8 +136,9 @@
       '&processParent=' + encodeURIComponent(process) +
       '&process='       + encodeURIComponent(process);
     return _fetch(url).then(function (d) {
-      var arr = Array.isArray(d) ? d : [];
-      if (process === 'labeling')        S.lmsLab  = arr;
+      var arr = d && d.operators ? d.operators
+              : Array.isArray(d) ? d : [];
+      if (process === 'labeling')         S.lmsLab  = arr;
       if (process === 'containerization') S.lmsCont = arr;
     }).catch(function(){});
   }
@@ -231,10 +232,18 @@
   function _opName(op) { return op.name || op.representativeName || op.id || '—'; }
 
   function _opUtil(op) {
-    var v = op.utilization != null ? op.utilization
-          : op.utilizationRate != null ? op.utilizationRate : null;
-    if (v === null) return null;
-    return Math.round(v <= 1 ? v * 100 : v);
+    // Se vier utilization direto, usa
+    if (op.utilization != null) return Math.round(op.utilization <= 1 ? op.utilization * 100 : op.utilization);
+    if (op.utilizationRate != null) return Math.round(op.utilizationRate <= 1 ? op.utilizationRate * 100 : op.utilizationRate);
+    // Calcula pelo effective_time vs tempo total do turno estimado
+    // attributes = 'routed' significa que está ativo
+    // Usa effective_time / 3600 * 100 como proxy de utilização horária
+    if (op.effective_time != null && op.effective_time > 0) {
+      // effective_time em segundos — calcula % do turno (assume 60min = 3600s como base)
+      var pct = Math.round((op.effective_time / 3600) * 100);
+      return Math.min(pct, 100);
+    }
+    return null;
   }
 
   function _lmsAvg(arr) {
@@ -340,16 +349,23 @@
       return ua - ub;
     });
     var h = '<div class="p3-tbl-wrap"><table class="p3-tbl">' +
-      '<thead><tr><th>#</th><th>Operador</th><th>LMS %</th><th>PPH Efet.</th><th>PPH Líq.</th></tr></thead><tbody>';
+      '<thead><tr><th>#</th><th>Operador</th><th>PPH</th><th>Itens</th><th>Tempo (min)</th><th>Status</th></tr></thead><tbody>';
     sorted.forEach(function (op, i) {
-      var u   = _opUtil(op);
-      var bad = u !== null && u < CFG.lmsTarget;
+      var u    = _opUtil(op);
+      var bad  = u !== null && u < CFG.lmsTarget;
+      var pph  = Math.round(op.effective_productivity || 0);
+      var itens = op.item_count || 0;
+      var tempo = op.effective_time ? Math.round(op.effective_time / 60) : 0;
+      var status = op.attributes === 'routed' ? 
+        '<span style="color:#00a650;font-weight:700">● Ativo</span>' : 
+        '<span style="color:#f23d4f;font-weight:700">● Inativo</span>';
       h += '<tr' + (bad ? ' class="p3-row-bad"' : '') + '>' +
         '<td style="color:#6c7a99">' + (i + 1) + '</td>' +
         '<td><strong>' + _esc(_opName(op)) + '</strong></td>' +
-        '<td>' + (u !== null ? _lmsBar(u) : '—') + '</td>' +
-        '<td>' + Math.round(op.effectiveProductivity || 0) + '</td>' +
-        '<td>' + Math.round(op.netProductivity || 0) + '</td>' +
+        '<td><strong>' + pph + '</strong>/h</td>' +
+        '<td>' + itens + '</td>' +
+        '<td>' + tempo + ' min</td>' +
+        '<td>' + status + '</td>' +
         '</tr>';
     });
     return h + '</tbody></table></div>';
