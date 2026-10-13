@@ -85,22 +85,23 @@ kbd{background:#0f3460;border:1px solid #2a3a5c;border-radius:4px;padding:2px 7p
 
 <script>
 (function(){
-  var SCRIPT_URL = 'https://kelvinkennedyfs-bit.github.io/painel-srj3/painel-srj3.js';
+  fetch('https://kelvinkennedyfs-bit.github.io/painel-srj3/painel-srj3.js')
+    .then(function(r){ return r.text(); })
+    .then(function(code){
+      var minified = code
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\/\/[^\n]*/g, '')
+        .replace(/\n\s*/g, ' ')
+        .replace(/\s{2,}/g, ' ')
+        .trim();
 
-  var code = '(function(){' +
-    'var s=document.createElement("script");' +
-    's.src="' + SCRIPT_URL + '?_="+Date.now();' +
-    'document.head.appendChild(s);' +
-    '})();';
+      var btn = document.getElementById('bmBtn');
+      btn.href = 'javascript:(function(){' + encodeURIComponent(minified) + '})()';
 
-  var btn = document.getElementById('bmBtn');
-  btn.href = 'javascript:' + encodeURIComponent(code);
-
-  btn.addEventListener('click', function(e){
-    e.preventDefault();
-    alert('👆 Arraste o botão amarelo para a barra de favoritos do Chrome!');
-  });
+      btn.addEventListener('click', function(e){
+        e.preventDefault();
+        alert('👆 Arraste o botão amarelo para a barra de favoritos!');
+      });
+    });
 })();
 </script>
-</body>
-</html>
