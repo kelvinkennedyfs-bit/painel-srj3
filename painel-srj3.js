@@ -232,26 +232,44 @@
   function _opName(op) { return op.name || op.representativeName || op.id || '—'; }
 
   function _opUtil(op) {
-    // Se vier utilization direto, usa
-    if (op.utilization != null) return Math.round(op.utilization <= 1 ? op.utilization * 100 : op.utilization);
-    if (op.utilizationRate != null) return Math.round(op.utilizationRate <= 1 ? op.utilizationRate * 100 : op.utilizationRate);
-    // Calcula pelo effective_time vs tempo total do turno estimado
-    // attributes = 'routed' significa que está ativo
-    // Usa effective_time / 3600 * 100 como proxy de utilização horária
+    // Sem bipagem — não conta
+    if ((!op.attributes || op.attributes === '') && (!op.effective_time || op.effective_time === 0)) return null;
+    // no-rep — não conta na média (NÃO SE APLICA)
+    if (op.behavioral_strategy === 'no-rep') return null;
+    // Calcula utilização: effective_time em segundos / total segundos no turno
+    // Usa 8h = 28800s como referência de turno completo
     if (op.effective_time != null && op.effective_time > 0) {
-      // effective_time em segundos — calcula % do turno (assume 60min = 3600s como base)
-      var pct = Math.round((op.effective_time / 3600) * 100);
+      var pct = Math.round((op.effective_time / 28800) * 100);
       return Math.min(pct, 100);
     }
-    return null;
+    return 0;
+  }
+
+  function _opStatus(op) {
+    if ((!op.attributes || op.attributes === '') && (!op.effective_time || op.effective_time === 0)) {
+      return '<span style="background:#2a3a5c;color:#8a9bbf;padding:2px 8px;border-radius:10px;font-size:11px">Sem bipagem</span>';
+    }
+    if (op.behavioral_strategy === 'no-rep') {
+      return '<span style="background:rgba(242,183,5,.15);color:#f2b705;padding:2px 8px;border-radius:10px;font-size:11px">N/A</span>';
+    }
+    var mins = op.effective_time ? Math.round(op.effective_time / 60) : 0;
+    var h = Math.floor(mins / 60), m = mins % 60;
+    var tempo = h > 0 ? h + 'h ' + m + 'min' : m + 'min';
+    return '<span style="color:#00a650;font-weight:700">● ' + tempo + '</span>';
   }
 
   function _lmsAvg(arr) {
     if (!arr || !arr.length) return 0;
     var s = 0, c = 0;
     arr.forEach(function (op) {
-      var v = _opUtil(op);
-      if (v !== null) { s += v; c++; }
+      // Só conta quem tem rep e tem bipagem
+      if (op.behavioral_strategy !== 'rep') return;
+      if (!op.effective_time || op.effective_time === 0) return;
+      if (!op.attributes || op.attributes === '') return;
+      var mins = Math.round(op.effective_time / 60);
+      // PPH como proxy de utilização relativa
+      var pph = op.effective_productivity || 0;
+      if (pph > 0) { s += pph; c++; }
     });
     return c > 0 ? Math.round(s / c) : 0;
   }
@@ -343,31 +361,67 @@
   // ── LMS TABLE ──────────────────────────────────────────────
   function _lmsTable(arr) {
     if (!arr || !arr.length) return '<p class="p3-empty">Sem dados de operadores.</p>';
-    // Ordena por utilização crescente (ofensores primeiro)
-    var sorted = arr.slice().sort(function (a, b) {
-      var ua = _opUtil(a) || 0, ub = _opUtil(b) || 0;
-      return ua - ub;
-    });
+    
+    // Separa: ativos (rep) / N/A (no-rep) / sem bipagem
+    var ativos   = arr.filter(function(op){ return op.behavioral_strategy === 'rep' && op.effective_time > 0 && op.attributes; });
+    var naAplica = arr.filter(function(op){ return op.behavioral_strategy === 'no-rep'; });
+    var semBip   = arr.filter(function(op){ return (!op.attributes || op.attributes === '') && (!op.effective_time || op.effective_time === 0); });
+
+    // Ordena ativos por PPH decrescente
+    ativos.sort(function(a,b){ return (b.effective_productivity||0) - (a.effective_productivity||0); });
+
     var h = '<div class="p3-tbl-wrap"><table class="p3-tbl">' +
-      '<thead><tr><th>#</th><th>Operador</th><th>PPH</th><th>Itens</th><th>Tempo (min)</th><th>Status</th></tr></thead><tbody>';
-    sorted.forEach(function (op, i) {
-      var u    = _opUtil(op);
-      var bad  = u !== null && u < CFG.lmsTarget;
+      '<thead><tr><th>#</th><th>Operador</th><th>PPH</th><th>Itens</th><th>Tempo Ativo</th><th>Tipo</th></tr></thead><tbody>';
+
+    // Ativos
+    ativos.forEach(function(op, i) {
       var pph  = Math.round(op.effective_productivity || 0);
-      var itens = op.item_count || 0;
-      var tempo = op.effective_time ? Math.round(op.effective_time / 60) : 0;
-      var status = op.attributes === 'routed' ? 
-        '<span style="color:#00a650;font-weight:700">● Ativo</span>' : 
-        '<span style="color:#f23d4f;font-weight:700">● Inativo</span>';
-      h += '<tr' + (bad ? ' class="p3-row-bad"' : '') + '>' +
-        '<td style="color:#6c7a99">' + (i + 1) + '</td>' +
-        '<td><strong>' + _esc(_opName(op)) + '</strong></td>' +
-        '<td><strong>' + pph + '</strong>/h</td>' +
-        '<td>' + itens + '</td>' +
-        '<td>' + tempo + ' min</td>' +
-        '<td>' + status + '</td>' +
+      var mins = Math.round((op.effective_time || 0) / 60);
+      var h2   = Math.floor(mins/60), m2 = mins%60;
+      var tempo = h2 > 0 ? h2+'h '+m2+'min' : m2+'min';
+      var tipo  = op.attributes && op.attributes.includes('non-routed') ? 
+        '<span style="color:#9b59b6;font-size:11px">Manual</span>' : 
+        '<span style="color:#3483fa;font-size:11px">Rota</span>';
+      h += '<tr>' +
+        '<td style="color:#6c7a99">' + (i+1) + '</td>' +
+        '<td><strong>' + _esc(op.full_name || op.id) + '</strong></td>' +
+        '<td><strong style="color:#00a650">' + pph + '</strong>/h</td>' +
+        '<td>' + (op.item_count || 0) + '</td>' +
+        '<td style="color:#00a650">' + tempo + '</td>' +
+        '<td>' + tipo + '</td>' +
         '</tr>';
     });
+
+    // N/A
+    if (naAplica.length) {
+      h += '<tr><td colspan="6" style="background:#1a2a3a;color:#8a9bbf;font-size:11px;padding:6px 12px;font-weight:700">NÃO SE APLICA — ' + naAplica.length + ' operador(es)</td></tr>';
+      naAplica.forEach(function(op) {
+        var pph = Math.round(op.effective_productivity || 0);
+        var mins = Math.round((op.effective_time || 0) / 60);
+        h += '<tr style="opacity:.6">' +
+          '<td>—</td>' +
+          '<td>' + _esc(op.full_name || op.id) + '</td>' +
+          '<td>' + pph + '/h</td>' +
+          '<td>' + (op.item_count || 0) + '</td>' +
+          '<td>' + mins + 'min</td>' +
+          '<td><span style="color:#f2b705;font-size:11px">N/A</span></td>' +
+          '</tr>';
+      });
+    }
+
+    // Sem bipagem
+    if (semBip.length) {
+      h += '<tr><td colspan="6" style="background:#1a2a3a;color:#8a9bbf;font-size:11px;padding:6px 12px;font-weight:700">SEM BIPAGEM — ' + semBip.length + ' operador(es)</td></tr>';
+      semBip.forEach(function(op) {
+        h += '<tr style="opacity:.4">' +
+          '<td>—</td>' +
+          '<td>' + _esc(op.full_name || op.id) + '</td>' +
+          '<td colspan="3" style="color:#6c7a99;font-size:11px">Nenhuma bipagem hoje</td>' +
+          '<td><span style="color:#6c7a99;font-size:11px">Inativo</span></td>' +
+          '</tr>';
+      });
+    }
+
     return h + '</tbody></table></div>';
   }
 
