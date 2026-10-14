@@ -139,7 +139,7 @@
       var arr = d && d.operators ? d.operators
               : Array.isArray(d) ? d : [];
       if (process === 'labeling')         S.lmsLab  = arr;
-      if (process === 'containerization') S.lmsCont = arr;
+      if (process === 'sorting') S.lmsCont = arr;
     }).catch(function(){});
   }
 
@@ -172,13 +172,13 @@
     // LMS — só funciona no lms.adminml.com
     if (onLMS || (!onEnvios && !onLMS)) {
       promises.push(fetchLMS('labeling'));
-      promises.push(fetchLMS('containerization'));
+      promises.push(fetchLMS('sorting'));
     }
 
     // Se está no envios, tenta LMS também (pode funcionar em alguns casos)
     if (onEnvios) {
       promises.push(fetchLMS('labeling').catch(function(){}));
-      promises.push(fetchLMS('containerization').catch(function(){}));
+      promises.push(fetchLMS('sorting').catch(function(){}));
     }
 
     Promise.all(promises).then(_done).catch(_done);
@@ -193,7 +193,7 @@
       fetchHeatmap(gid),
       fetchDelayed(gid),
       fetchLMS('labeling').catch(function(){}),
-      fetchLMS('containerization').catch(function(){})
+      fetchLMS('sorting').catch(function(){})
     ]).then(_done).catch(_done);
   }
 
